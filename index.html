@@ -4,1379 +4,1341 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GBoS GEOAI | Gambia Agricultural Intelligence</title>
+<title>GBoS GEOAI | Agricultural Intelligence</title>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="https://unpkg.com/osmtogeojson@3.0.0/osmtogeojson.js"></script>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet"
+ href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
+ onerror="this.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'">
 
 <style>
-:root {
-  --bg:#081321;
-  --panel:#101e30;
-  --panel2:#172940;
-  --border:#293d55;
-  --text:#eef5fc;
-  --muted:#9aadc1;
-  --green:#39d5a0;
-  --blue:#55a8f3;
-  --orange:#eeb35c;
-  --red:#f16e6e;
+:root{
+ --bg:#081321;
+ --panel:#101e30;
+ --panel2:#16283d;
+ --line:#2b4058;
+ --text:#e9f2fb;
+ --muted:#9aadc1;
+ --accent:#38bdf8;
 }
 *{box-sizing:border-box}
-html,body{
-  margin:0;width:100%;height:100%;
-  overflow:hidden;background:var(--bg);
-  color:var(--text);font-family:Inter,sans-serif
+html,body{height:100%;margin:0}
+body{
+ background:var(--bg);
+ color:var(--text);
+ font-family:Arial,Helvetica,sans-serif;
+ overflow:hidden;
 }
-button,select,input{font:inherit}
-.app{height:100vh;display:flex;flex-direction:column}
 header{
-  height:65px;flex-shrink:0;
-  display:flex;justify-content:space-between;align-items:center;
-  padding:9px 18px;background:#0c1928;
-  border-bottom:1px solid var(--border)
+ height:66px;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ padding:10px 18px;
+ background:#0c1929;
+ border-bottom:1px solid var(--line);
 }
-.brand{display:flex;align-items:center;gap:11px}
-.logo{
-  width:39px;height:39px;border-radius:10px;
-  display:grid;place-items:center;
-  color:#071a16;font-weight:900;font-size:20px;
-  background:linear-gradient(135deg,#39d5a0,#238eb3)
+.brand{font-weight:800;font-size:15px;letter-spacing:1px}
+.brand span{color:var(--accent)}
+.subtitle{font-size:10px;color:var(--muted);margin-top:5px}
+.status{
+ padding:8px 12px;
+ background:#173d32;
+ color:#86efac;
+ border-radius:20px;
+ font-size:10px;
+ font-weight:bold;
 }
-.brand h1{font-size:15px;margin:0;letter-spacing:.7px}
-.brand p{font-size:9px;color:var(--muted);margin:4px 0 0;letter-spacing:1px}
-.header-right{display:flex;align-items:center;gap:10px}
-.pill{
-  border:1px solid #28634f;color:var(--green);
-  background:#102b25;padding:7px 10px;border-radius:30px;
-  font-size:9px
-}
-#clock{font-size:10px;color:var(--muted)}
-main{
-  flex:1;min-height:0;display:grid;
-  grid-template-columns:minmax(255px,1fr) minmax(380px,1.5fr) minmax(260px,1fr);
-  gap:9px;padding:9px
+.layout{
+ display:grid;
+ grid-template-columns:minmax(245px,1fr) minmax(350px,1.25fr) minmax(245px,1fr);
+ gap:9px;
+ padding:9px;
+ height:calc(100vh - 66px);
 }
 .panel{
-  min-height:0;overflow-y:auto;background:var(--panel);
-  border:1px solid var(--border);border-radius:9px;
-  scrollbar-width:thin;scrollbar-color:#38516b transparent
+ min-width:0;
+ min-height:0;
+ overflow:hidden;
+ background:var(--panel);
+ border:1px solid var(--line);
+ border-radius:8px;
 }
-.inner{padding:13px}
-.heading{font-size:12px;font-weight:800;letter-spacing:.7px;margin:0 0 5px}
-.desc{font-size:10px;line-height:1.6;color:var(--muted);margin:0 0 14px}
-.section{
-  color:var(--green);font-size:10px;font-weight:800;
-  letter-spacing:1px;border-bottom:1px solid var(--border);
-  padding-bottom:7px;margin:17px 0 9px
+.panel-header{
+ height:55px;
+ padding:11px 13px;
+ background:#13243a;
+ border-bottom:1px solid var(--line);
 }
-.field{margin:9px 0}
-.field label{display:block;color:#c4d3e2;font-size:10px;margin-bottom:5px}
-select,input{
-  width:100%;padding:9px;background:#0b1726;
-  border:1px solid #30445d;border-radius:6px;
-  color:var(--text);font-size:10px;outline:none
+.panel-header strong{font-size:11px;letter-spacing:1px}
+.panel-header p{font-size:10px;color:var(--muted);margin:5px 0 0}
+.panel-body{
+ height:calc(100% - 55px);
+ overflow-y:auto;
+ padding:13px;
 }
-select:focus,input:focus{border-color:var(--green)}
-.btn{
-  width:100%;padding:10px;border:0;border-radius:6px;
-  margin:4px 0;cursor:pointer;font-size:10px;
-  font-weight:800;letter-spacing:.3px
+.section{margin-bottom:18px}
+.section-title{
+ color:var(--accent);
+ font-size:10px;
+ font-weight:bold;
+ letter-spacing:1px;
+ margin-bottom:9px;
 }
-.btn:hover{filter:brightness(1.13)}
-.green{background:var(--green);color:#061b15}
-.blue{background:#2878bd;color:white}
-.gray{background:#2a3d53;color:white}
-.red{background:#923e46;color:white}
-.note{font-size:9px;line-height:1.6;color:var(--muted)}
+label{
+ display:block;
+ color:#c0d0df;
+ font-size:11px;
+ margin:9px 0 5px;
+}
+select,input,button{
+ width:100%;
+ padding:9px;
+ border:1px solid #354b63;
+ border-radius:5px;
+ background:#0a1828;
+ color:var(--text);
+ font-size:11px;
+}
+button{
+ background:#124363;
+ border-color:#28678c;
+ font-weight:bold;
+ cursor:pointer;
+}
+button:hover{background:#1b587e}
+button:disabled{opacity:.5;cursor:wait}
+.secondary{background:#1b2b3f;border-color:#43576c}
+.button-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+.check-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .check{
-  display:flex;align-items:center;gap:8px;
-  font-size:10px;color:#dce7f3;margin:10px 0
+ display:flex;
+ align-items:center;
+ gap:6px;
+ margin:0;
+ font-size:11px;
 }
-.check input{width:auto;accent-color:var(--green)}
-.map-panel{
-  display:flex;flex-direction:column;min-height:0;
-  overflow:hidden;border:1px solid var(--border);
-  border-radius:9px;background:#172638
+.check input{width:auto;accent-color:var(--accent)}
+.map-panel{display:flex;flex-direction:column}
+.map-panel .panel-header{flex-shrink:0}
+.map-wrap{
+ flex:1;
+ min-height:0;
+ position:relative;
+ background:#dce6ed;
 }
-.map-head{
-  min-height:51px;display:flex;align-items:center;
-  justify-content:space-between;gap:8px;padding:8px 12px;
-  background:var(--panel);border-bottom:1px solid var(--border)
-}
-.map-title{font-size:11px;font-weight:800}
-.map-sub{font-size:9px;color:var(--muted);margin-top:3px}
-.map-head select{width:auto;min-width:105px;padding:7px}
 #map{
-  flex:1;min-height:400px;width:100%;
-  background:#dce7e9;position:relative
+ position:absolute;
+ inset:0;
+ width:100%;
+ height:100%;
+ background:#dce6ed;
 }
-.map-foot{
-  padding:7px 10px;background:var(--panel);
-  border-top:1px solid var(--border);
-  display:flex;justify-content:space-between;gap:8px;
-  color:var(--muted);font-size:9px
+.map-tag{
+ position:absolute;
+ z-index:500;
+ top:10px;
+ left:10px;
+ display:flex;
+ gap:6px;
+ flex-wrap:wrap;
+ pointer-events:none;
 }
-.kpis{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.kpi{padding:10px;border:1px solid var(--border);background:var(--panel2);border-radius:7px;min-width:0}
-.kpi-label{font-size:9px;color:var(--muted)}
-.kpi-value{font-size:17px;font-weight:800;margin-top:6px;overflow-wrap:anywhere}
-.kpi-unit{font-size:9px;color:var(--muted);margin-top:3px}
-.chartbox{padding:10px;background:#0c1928;border:1px solid var(--border);border-radius:7px;margin:9px 0}
-.chart-title{font-size:10px;font-weight:700;margin-bottom:8px}
-.chart{height:190px;position:relative}
-.legend-row{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:10px;color:#dce7f3}
-.swatch{width:12px;height:12px;border-radius:3px;flex-shrink:0}
-.table-wrap{max-height:240px;overflow:auto;border:1px solid var(--border);border-radius:6px}
-table{width:100%;border-collapse:collapse;font-size:9px}
-td,th{padding:8px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
-th{background:#1a2b40;color:#b9cde0;position:sticky;top:0}
-td{color:#dce7f3}
-.status{
-  padding:9px;border-radius:6px;background:#0c1928;
-  border:1px solid var(--border);font-size:10px;
-  color:#c4d4e3;line-height:1.6;overflow-wrap:anywhere
+.map-tag span{
+ background:#102137ed;
+ border:1px solid #4a6178;
+ color:white;
+ border-radius:4px;
+ padding:7px 9px;
+ font-size:10px;
 }
-.status.ok{border-color:#28634f;color:#69dbb0}
-.status.warn{border-color:#725b32;color:#f1c477}
-.status.error{border-color:#82434b;color:#ffaaaa}
-footer{
-  height:31px;flex-shrink:0;display:flex;align-items:center;
-  justify-content:space-between;padding:5px 16px;
-  background:#0c1928;border-top:1px solid var(--border);
-  color:var(--muted);font-size:9px
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kpi{
+ background:var(--panel2);
+ border:1px solid var(--line);
+ border-radius:6px;
+ padding:11px;
 }
-.leaflet-container{font-family:Inter,sans-serif}
-.leaflet-popup-content{font-size:11px;line-height:1.6}
+.kpi small{font-size:9px;color:var(--muted)}
+.kpi strong{display:block;font-size:20px;margin-top:6px}
+.kpi em{font-size:9px;color:var(--muted);font-style:normal}
+.notice{
+ background:#14263a;
+ border:1px solid #293f57;
+ border-radius:6px;
+ padding:10px;
+ color:#c2d0df;
+ font-size:10px;
+ line-height:1.6;
+}
+#log{
+ white-space:pre-wrap;
+ font-size:10px;
+ line-height:1.6;
+ color:#b5c8da;
+ max-height:180px;
+ overflow:auto;
+}
+table{width:100%;border-collapse:collapse;font-size:10px}
+td,th{padding:7px 5px;border-bottom:1px solid var(--line);text-align:left}
+th{color:#7dd3fc}
+.chart{
+ background:#0b1929;
+ border:1px solid var(--line);
+ border-radius:6px;
+ padding:10px;
+}
+.chart canvas{width:100%!important;height:170px!important}
+.legend{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:8px;
+ font-size:10px;
+}
+.legend span{display:flex;align-items:center;gap:6px}
+.swatch{width:12px;height:12px;border-radius:3px;display:inline-block}
+.leaflet-container{font-family:Arial,sans-serif}
+.leaflet-control-attribution{font-size:9px!important}
 @media(max-width:950px){
-  html,body{height:auto;min-height:100%;overflow:auto}
-  .app{height:auto;min-height:100vh}
-  main{grid-template-columns:1fr;min-height:auto}
-  .panel{max-height:650px}
-  .map-panel{height:600px}
-  #map{min-height:500px}
-  header{height:auto;min-height:65px;flex-wrap:wrap;gap:8px}
-  footer{height:auto;min-height:35px;flex-wrap:wrap}
+ body{overflow:auto}
+ .layout{height:auto;grid-template-columns:1fr}
+ .panel{min-height:420px}
+ .map-panel{height:560px}
 }
 </style>
 </head>
 
 <body>
-<div class="app">
 
 <header>
-  <div class="brand">
-    <div class="logo">G</div>
-    <div>
-      <h1>GBoS GEOAI</h1>
-      <p>AGRICULTURAL LAND-COVER & OPEN DATA INTELLIGENCE</p>
-    </div>
-  </div>
-  <div class="header-right">
-    <span class="pill" id="connection">● INITIALISING</span>
-    <span id="clock"></span>
-  </div>
+ <div>
+  <div class="brand">GBoS GEOAI <span>• AGRICULTURAL INTELLIGENCE</span></div>
+  <div class="subtitle">AGRICULTURAL LAND COVER • SPATIAL ANALYSIS • THE GAMBIA</div>
+ </div>
+ <div class="status" id="status">STARTING</div>
 </header>
 
-<main>
+<div class="layout">
 
-<!-- LEFT: CONTROLS -->
-<aside class="panel">
-<div class="inner">
-  <h2 class="heading">01 / CONTROL CENTRE</h2>
-  <p class="desc">Open-source geospatial data discovery, administrative filtering and agricultural landscape analysis for The Gambia.</p>
+<!-- CONTROLS -->
+<section class="panel">
+ <div class="panel-header">
+  <strong>01 / CONTROL CENTRE</strong>
+  <p>Geographic and thematic controls</p>
+ </div>
 
-  <div class="section">01 / GEOGRAPHIC DOMAIN</div>
+ <div class="panel-body">
 
-  <div class="field">
-    <label>Region / ADM1</label>
-    <select id="region"><option value="">Loading boundaries...</option></select>
-  </div>
-  <div class="field">
-    <label>District / ADM2</label>
-    <select id="district"><option value="">All districts</option></select>
-  </div>
-  <div class="field">
-    <label>Ward / ADM3 (where available)</label>
-    <select id="ward"><option value="">All wards</option></select>
-  </div>
+  <div class="section">
+   <div class="section-title">GEOGRAPHIC SELECTION</div>
 
-  <button class="btn blue" id="loadBoundaries">RELOAD OPEN BOUNDARIES</button>
+   <label>Region</label>
+   <select id="region"><option value="">Loading...</option></select>
 
-  <div class="section">02 / OPEN DATA LAYERS</div>
+   <label>Local Government Area</label>
+   <select id="lga"><option value="">All LGAs</option></select>
 
-  <label class="check"><input type="checkbox" id="worldcover" checked> ESA WorldCover 2021 (10 m)</label>
-  <label class="check"><input type="checkbox" id="osmLand" checked> OSM agriculture and land use</label>
-  <label class="check"><input type="checkbox" id="osmRoads" checked> OSM roads and tracks</label>
-  <label class="check"><input type="checkbox" id="osmBuildings"> OSM buildings</label>
-  <label class="check"><input type="checkbox" id="osmWater" checked> OSM water and waterways</label>
-  <label class="check"><input type="checkbox" id="osmForest"> OSM forests and vegetation</label>
-  <label class="check"><input type="checkbox" id="adminLayer" checked> Administrative boundaries</label>
+   <label>District</label>
+   <select id="district"><option value="">All districts</option></select>
 
-  <button class="btn green" id="extractOSM">EXTRACT OPEN OSM DATA FOR SELECTED AREA</button>
-  <button class="btn gray" id="extractCountry">EXTRACT OSM DATA FOR THE GAMBIA</button>
+   <label>Ward</label>
+   <select id="ward"><option value="">All wards</option></select>
 
-  <div class="note">OpenStreetMap extraction uses a public Overpass service. Large-area queries can be slow or rate-limited. Extract smaller districts or wards if a national request fails.</div>
-
-  <div class="section">03 / MAP SETTINGS</div>
-  <div class="field">
-    <label>Basemap</label>
-    <select id="basemap">
-      <option value="osm">OpenStreetMap</option>
-      <option value="satellite">Satellite imagery</option>
-      <option value="terrain">Terrain</option>
-      <option value="dark">Dark map</option>
-    </select>
+   <div class="button-row">
+    <button id="apply">APPLY SELECTION</button>
+    <button id="reset" class="secondary">RESET</button>
+   </div>
   </div>
 
-  <div class="section">04 / DATA EXPORT</div>
-  <button class="btn blue" id="exportOSM">EXPORT EXTRACTED OSM GEOJSON</button>
-  <button class="btn blue" id="exportBoundaries">EXPORT SELECTED BOUNDARIES</button>
-  <button class="btn blue" id="exportCSV">EXPORT AREA STATISTICS CSV</button>
-  <button class="btn gray" id="exportReport">EXPORT ANALYSIS SUMMARY</button>
-  <button class="btn red" id="reset">RESET DASHBOARD</button>
-
-  <div class="section">05 / DATA SERVICE STATUS</div>
-  <div id="serviceStatus" class="status warn">Waiting for open-data services...</div>
-</div>
-</aside>
-
-
-<!-- CENTRE: MAP -->
-<section class="map-panel">
-  <div class="map-head">
-    <div>
-      <div class="map-title">02 / INTERACTIVE GEOSPATIAL MAP</div>
-      <div class="map-sub" id="mapSubtitle">The Gambia • National overview</div>
-    </div>
-    <select id="mapLayerQuick">
-      <option value="all">All visible layers</option>
-      <option value="land">Agriculture / land use</option>
-      <option value="roads">Road network</option>
-      <option value="water">Water features</option>
-    </select>
+  <div class="section">
+   <div class="section-title">THEMATIC LAYERS</div>
+   <div class="check-grid">
+    <label class="check"><input type="checkbox" id="agri" checked>Agriculture</label>
+    <label class="check"><input type="checkbox" id="roads">Roads</label>
+    <label class="check"><input type="checkbox" id="buildings">Buildings</label>
+    <label class="check"><input type="checkbox" id="water">Water</label>
+    <label class="check"><input type="checkbox" id="forest">Forest</label>
+    <label class="check"><input type="checkbox" id="showEA" checked>EA boundaries</label>
+   </div>
   </div>
-  <div id="map"></div>
-  <div class="map-foot">
-    <span id="coordinates">Map initialising...</span>
-    <span id="mapStatus">Basemap loading</span>
+
+  <div class="section">
+   <div class="section-title">MAP SETTINGS</div>
+   <label>Basemap provider</label>
+   <select id="basemap">
+    <option value="osm">OpenStreetMap</option>
+    <option value="carto">Carto Voyager</option>
+    <option value="light">Carto Light</option>
+    <option value="satellite">Esri Satellite</option>
+    <option value="hybrid">Esri Hybrid</option>
+    <option value="terrain">OpenTopoMap</option>
+   </select>
+
+   <label>Layer opacity</label>
+   <input id="opacity" type="range" min="20" max="100" value="85">
+
+   <label>Overpass query timeout</label>
+   <select id="timeout">
+    <option value="60">60 seconds</option>
+    <option value="90" selected>90 seconds</option>
+    <option value="120">120 seconds</option>
+   </select>
+
+   <div class="button-row">
+    <button id="run">RUN ANALYSIS</button>
+    <button id="clear" class="secondary">CLEAR THEMES</button>
+   </div>
   </div>
+
+  <div class="section">
+   <div class="section-title">EXPORT</div>
+   <div class="button-row">
+    <button id="geoExport" class="secondary">EXPORT GEOJSON</button>
+    <button id="csvExport" class="secondary">EXPORT CSV</button>
+   </div>
+  </div>
+
+  <div class="section">
+   <div class="section-title">MAP LEGEND</div>
+   <div class="legend">
+    <span><i class="swatch" style="background:#84cc16"></i>Agriculture</span>
+    <span><i class="swatch" style="background:#f59e0b"></i>Roads</span>
+    <span><i class="swatch" style="background:#e879f9"></i>Buildings</span>
+    <span><i class="swatch" style="background:#38bdf8"></i>Water</span>
+    <span><i class="swatch" style="background:#16a34a"></i>Forest</span>
+    <span><i class="swatch" style="background:#ffffff"></i>EA boundaries</span>
+   </div>
+  </div>
+
+  <div class="section">
+   <div class="section-title">PROCESSING LOG</div>
+   <div id="log">Initialising dashboard...</div>
+  </div>
+
+ </div>
 </section>
 
+<!-- MAP -->
+<section class="panel map-panel">
+ <div class="panel-header">
+  <strong>02 / INTERACTIVE MAP</strong>
+  <p id="mapTitle">The Gambia • National extent</p>
+ </div>
+ <div class="map-wrap">
+  <div id="map"></div>
+  <div class="map-tag">
+   <span id="areaTag">National extent</span>
+   <span id="featureTag">0 features</span>
+  </div>
+ </div>
+</section>
 
-<!-- RIGHT: ANALYTICS -->
-<aside class="panel">
-<div class="inner">
-  <h2 class="heading">03 / ANALYTICS CENTRE</h2>
-  <p class="desc">Open-data inventory, agricultural land-use features, mapped infrastructure and selected-area summaries.</p>
+<!-- ANALYTICS -->
+<section class="panel">
+ <div class="panel-header">
+  <strong>03 / ANALYTICS CENTRE</strong>
+  <p>Selected area indicators and summaries</p>
+ </div>
 
-  <div class="section">01 / SELECTED AREA INDICATORS</div>
-  <div class="kpis">
-    <div class="kpi"><div class="kpi-label">Boundary features</div><div class="kpi-value" id="kBoundary">0</div><div class="kpi-unit">Selected features</div></div>
-    <div class="kpi"><div class="kpi-label">OSM features</div><div class="kpi-value" id="kOSM">0</div><div class="kpi-unit">Retrieved features</div></div>
-    <div class="kpi"><div class="kpi-label">Agricultural features</div><div class="kpi-value" id="kAgri">0</div><div class="kpi-unit">OSM records</div></div>
-    <div class="kpi"><div class="kpi-label">Road length</div><div class="kpi-value" id="kRoad">0</div><div class="kpi-unit">Kilometres, OSM roads</div></div>
-    <div class="kpi"><div class="kpi-label">Building features</div><div class="kpi-value" id="kBuilding">0</div><div class="kpi-unit">OSM records</div></div>
-    <div class="kpi"><div class="kpi-label">Water features</div><div class="kpi-value" id="kWater">0</div><div class="kpi-unit">OSM records</div></div>
+ <div class="panel-body">
+  <div class="section">
+   <div class="section-title">SELECTED AREA INDICATORS</div>
+   <div class="kpis">
+    <div class="kpi"><small>EA FEATURES</small><strong id="nEA">0</strong><em>Selected polygons</em></div>
+    <div class="kpi"><small>ALL THEMES</small><strong id="nAll">0</strong><em>Mapped features</em></div>
+    <div class="kpi"><small>AGRICULTURE</small><strong id="nAgri">0</strong><em>OSM features</em></div>
+    <div class="kpi"><small>ROADS</small><strong id="nRoad">0</strong><em>OSM features</em></div>
+    <div class="kpi"><small>BUILDINGS</small><strong id="nBuilding">0</strong><em>OSM features</em></div>
+    <div class="kpi"><small>WATER</small><strong id="nWater">0</strong><em>OSM features</em></div>
+   </div>
   </div>
 
-  <div class="section">02 / OPEN LAND-USE INVENTORY</div>
-  <div class="chartbox">
-    <div class="chart-title">OpenStreetMap feature categories</div>
-    <div class="chart"><canvas id="landChart"></canvas></div>
+  <div class="section">
+   <div class="section-title">FEATURE DISTRIBUTION</div>
+   <div class="chart"><canvas id="featureChart"></canvas></div>
   </div>
 
-  <div class="section">03 / FEATURE SUMMARY</div>
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th>Feature category</th><th>Count</th></tr></thead>
-      <tbody id="featureTable"><tr><td colspan="2">No OSM data extracted.</td></tr></tbody>
-    </table>
+  <div class="section">
+   <div class="section-title">AGRICULTURAL FEATURE TYPES</div>
+   <div class="chart"><canvas id="agriChart"></canvas></div>
   </div>
 
-  <div class="section">04 / LAND-COVER REFERENCE</div>
-  <div id="worldcoverLegend" class="note">
-    ESA WorldCover WMS is a visual reference layer. WMS imagery is not a downloadable classified raster and does not by itself provide pixel-level statistics.
+  <div class="section">
+   <div class="section-title">GEOGRAPHIC PROFILE</div>
+   <table>
+    <tr><th>Region</th><td id="pRegion">All</td></tr>
+    <tr><th>LGA</th><td id="pLga">All</td></tr>
+    <tr><th>District</th><td id="pDistrict">All</td></tr>
+    <tr><th>Ward</th><td id="pWard">All</td></tr>
+    <tr><th>Selected EAs</th><td id="pEA">0</td></tr>
+   </table>
   </div>
 
-  <div class="section">05 / DATA SOURCES & LICENCES</div>
-  <div class="note">
-    <b>Administrative boundaries</b><br>
-    geoBoundaries gbOpen • CC BY 4.0. Attribution required.<br><br>
-    <b>Land cover</b><br>
-    ESA WorldCover 2021 • 10 m global land-cover product.<br><br>
-    <b>Roads, buildings, agriculture and water</b><br>
-    OpenStreetMap contributors • ODbL. Attribution required.<br><br>
-    <b>Basemap</b><br>
-    OpenStreetMap contributors / Esri / OpenTopoMap, depending on selection.
+  <div class="section">
+   <div class="section-title">METHODOLOGY</div>
+   <div class="notice">
+    Administrative boundaries are loaded from the GitHub GeoJSON file.
+    OpenStreetMap features are retrieved using the Overpass API and
+    filtered to the selected administrative extent.<br><br>
+    OSM agricultural mapping is volunteered geographic information.
+    It is not a complete agricultural inventory or a direct measurement
+    of cultivated land area.
+   </div>
   </div>
 
-  <div class="section">06 / INTERPRETATION</div>
-  <div class="note">
-    OpenStreetMap agricultural features are mapped objects, not a complete national agricultural census. Missing mapped farmland does not mean that farmland is absent. ESA WorldCover is a 2021 reference product and should not be presented as a current crop-type classification. Sentinel-1 crop phenology and crop-species classification require a separate time-series processing and validation workflow.
-  </div>
-
-  <div class="section">07 / CREDITS</div>
-  <div class="note">
+  <div class="section">
+   <div class="section-title">PRODUCTION CREDITS</div>
+   <div class="notice">
     Produced by Ansu Singhateh<br>
     GIS Analyst | GIS / Cartography Unit<br>
     Gambia Bureau of Statistics<br><br>
     GBoS GEOAI • Research and educational use
+   </div>
   </div>
-</div>
-</aside>
+ </div>
+</section>
 
-</main>
-
-<footer>
-  <span>GBoS GEOAI • AGRICULTURAL INTELLIGENCE</span>
-  <span>GIS / CARTOGRAPHY UNIT • GAMBIA BUREAU OF STATISTICS</span>
-</footer>
 </div>
 
+<!-- DEPENDENCIES -->
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 
 <script>
-// ==========================================================
-// 1. CONFIGURATION
-// ==========================================================
+"use strict";
 
-const GB_API = "https://www.geoboundaries.org/api/current/gbOpen/GMB/";
-const OVERPASS = [
-  "https://overpass-api.de/api/interpreter",
-  "https://overpass.kumi.systems/api/interpreter"
+/* =========================================================
+   CONFIGURATION
+========================================================= */
+
+const GEOJSON_URL =
+"https://raw.githubusercontent.com/silkysingz94-oss/Agricultural-Land-Cover1/main/Census_EAs_Geo.json";
+
+const OVERPASS=[
+ "https://overpass-api.de/api/interpreter",
+ "https://overpass.kumi.systems/api/interpreter"
 ];
 
-const COUNTRY_CENTER = [13.45, -16.58];
-
-const state = {
-  admin: {adm0:null,adm1:null,adm2:null,adm3:null},
-  selected: [],
-  osm: null,
-  osmLayer: null,
-  adminLayer: null,
-  worldLayer: null,
-  chart: null,
-  osmLoaded: false,
-  extracting: false
+const fields={
+ region:["RCO","region","regionname","region_name","rname"],
+ lga:["lganame","lga","localgovernmentarea"],
+ district:["distname","district","districtname"],
+ ward:["wardname","ward"],
+ ea:["feacode","ea_code","eacode","eaname"]
 };
 
-const COLORS = {
-  farmland:"#43bd76",
-  orchard:"#a4d65e",
-  forest:"#1b704c",
-  grass:"#b9c96a",
-  road:"#f3a34d",
-  building:"#e87575",
-  water:"#40a9df",
-  other:"#b9c4d1"
+const state={
+ all:null,
+ selected:[],
+ index:[],
+ busy:false,
+ opacity:.85,
+ data:{
+  agriculture:empty(),
+  roads:empty(),
+  buildings:empty(),
+  water:empty(),
+  forest:empty()
+ },
+ charts:{}
 };
 
-const $ = id => document.getElementById(id);
-
-$("clock").textContent = new Date().toLocaleString();
-
-
-// ==========================================================
-// 2. MAP INITIALISATION — FIXED HEIGHT AND INVALIDATE SIZE
-// ==========================================================
-
-const map = L.map("map", {
-  zoomControl:true,
-  preferCanvas:true,
-  fadeAnimation:false
-}).setView(COUNTRY_CENTER,8);
-
-const base = {
-  osm:L.tileLayer(
-    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    {maxZoom:19,attribution:"© OpenStreetMap contributors"}
-  ),
-  satellite:L.tileLayer(
-    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    {maxZoom:19,attribution:"Tiles © Esri"}
-  ),
-  terrain:L.tileLayer(
-    "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
-    {maxZoom:17,attribution:"© OpenTopoMap"}
-  ),
-  dark:L.tileLayer(
-    "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-    {maxZoom:19,attribution:"© CARTO © OpenStreetMap"}
-  )
-};
-
-let activeBase = base.osm;
-activeBase.addTo(map);
-
-function invalidateMap(){
-  setTimeout(()=>map.invalidateSize(true),150);
-  setTimeout(()=>map.invalidateSize(true),600);
+function empty(){
+ return {type:"FeatureCollection",features:[]};
 }
-window.addEventListener("resize",invalidateMap);
-window.addEventListener("load",invalidateMap);
-invalidateMap();
 
-map.on("mousemove",e=>{
-  $("coordinates").textContent =
-    "Lat "+e.latlng.lat.toFixed(5)+" | Lon "+e.latlng.lng.toFixed(5);
+function $(id){return document.getElementById(id)}
+
+function log(message){
+ $("log").textContent=
+  "["+new Date().toLocaleTimeString()+"] "+message+"\n"+
+  $("log").textContent;
+}
+
+function status(message){
+ $("status").textContent=message;
+}
+
+function norm(v){
+ return String(v??"").trim().toLowerCase();
+}
+
+function prop(feature,candidates){
+ const p=feature.properties||{};
+ const keys=Object.keys(p);
+ for(const name of candidates){
+  const key=keys.find(k=>norm(k)===norm(name));
+  if(key!==undefined && p[key]!==null) return p[key];
+ }
+ return "";
+}
+
+function unique(features,candidates){
+ return [...new Set(
+  features.map(f=>String(prop(f,candidates)||"").trim()).filter(Boolean)
+ )].sort((a,b)=>a.localeCompare(b));
+}
+
+function fill(id,values,placeholder){
+ const s=$(id);
+ s.innerHTML="";
+ const first=document.createElement("option");
+ first.value="";
+ first.textContent=placeholder;
+ s.appendChild(first);
+ values.forEach(value=>{
+  const o=document.createElement("option");
+  o.value=value;
+  o.textContent=value;
+  s.appendChild(o);
+ });
+}
+
+function escapeHTML(value){
+ return String(value??"").replace(/[&<>"']/g,c=>({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+ })[c]);
+}
+
+/* =========================================================
+   MAP STARTUP - INDEPENDENT OF CHARTS AND TURF
+========================================================= */
+
+if(typeof L==="undefined"){
+ status("LEAFLET FAILED");
+ log("Leaflet library did not load. Check CDN access.");
+ throw new Error("Leaflet is unavailable.");
+}
+
+const map=L.map("map",{
+ center:[13.45,-15.5],
+ zoom:8,
+ zoomControl:true,
+ preferCanvas:true
 });
 
-map.on("baselayerchange",invalidateMap);
+/* Multiple basemap providers */
 
-$("basemap").addEventListener("change",function(){
-  if(activeBase)map.removeLayer(activeBase);
-  activeBase=base[this.value]||base.osm;
-  activeBase.addTo(map);
-  invalidateMap();
-});
+const tileOptions={
+ osm:{
+  url:"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  attr:"© OpenStreetMap contributors",
+  maxZoom:19
+ },
+ carto:{
+  url:"https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+  attr:"© OpenStreetMap © CARTO",
+  maxZoom:20
+ },
+ light:{
+  url:"https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+  attr:"© OpenStreetMap © CARTO",
+  maxZoom:20
+ },
+ satellite:{
+  url:"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+  attr:"Esri World Imagery",
+  maxZoom:19
+ },
+ terrain:{
+  url:"https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+  attr:"OpenTopoMap",
+  maxZoom:17
+ }
+};
 
-map.on("tileerror",()=>{
-  $("mapStatus").textContent="A basemap tile failed; try another basemap";
-});
+let activeTile=null;
+let fallbackStarted=false;
 
-map.on("tileload",()=>{
-  $("mapStatus").textContent="Basemap tiles loading successfully";
-});
+function setBasemap(name){
+ const config=tileOptions[name]||tileOptions.osm;
 
+ if(activeTile) map.removeLayer(activeTile);
 
-// ==========================================================
-// 3. WORLD COVER WMS
-// ==========================================================
+ activeTile=L.tileLayer(config.url,{
+  maxZoom:config.maxZoom,
+  attribution:config.attr,
+  crossOrigin:true,
+  errorTileUrl:"",
+  updateWhenIdle:true,
+  keepBuffer:3
+ });
 
-state.worldLayer = L.tileLayer.wms(
-  "https://services.terrascope.be/wms/v2",
-  {
-    layers:"WORLDCOVER_2021_MAP",
-    format:"image/png",
-    transparent:true,
-    version:"1.3.0",
-    opacity:0.72,
-    attribution:"ESA WorldCover 2021"
+ activeTile.on("tileerror",()=>{
+  log("Tile error detected for "+name+" basemap.");
+  if(!fallbackStarted && name==="osm"){
+   fallbackStarted=true;
+   log("Switching automatically to Carto Voyager.");
+   $("basemap").value="carto";
+   setBasemap("carto");
   }
-);
+ });
 
-$("worldcover").addEventListener("change",function(){
-  if(this.checked)state.worldLayer.addTo(map);
-  else map.removeLayer(state.worldLayer);
+ activeTile.on("load",()=>{
+  log(name+" basemap tiles loaded.");
+ });
+
+ activeTile.addTo(map);
+}
+
+setBasemap("osm");
+
+map.whenReady(()=>{
+ status("MAP READY");
+ log("Map initialised.");
 });
 
+/* =========================================================
+   MAP LAYERS
+========================================================= */
 
-// ==========================================================
-// 4. STATUS AND HELPERS
-// ==========================================================
+const boundaryLayer=L.geoJSON(null,{
+ style:{
+  color:"#ffffff",
+  weight:1,
+  opacity:.95,
+  fillColor:"#38bdf8",
+  fillOpacity:.025
+ }
+}).addTo(map);
 
-function status(message,type="warn"){
-  const el=$("serviceStatus");
-  el.className="status "+type;
-  el.textContent=message;
+function popup(feature,layer){
+ const p=feature.properties||{};
+ const html=Object.entries(p).slice(0,10).map(([k,v])=>
+  "<tr><td>"+escapeHTML(k)+"</td><td>"+escapeHTML(v)+"</td></tr>"
+ ).join("");
+ layer.bindPopup("<b>Mapped feature</b><table>"+html+"</table>");
 }
 
-function num(n){
-  return Number(n||0).toLocaleString("en-US",{maximumFractionDigits:2});
+const mapLayers={
+ agriculture:L.geoJSON(null,{
+  style:{color:"#84cc16",weight:1.5,fillColor:"#84cc16",fillOpacity:.45},
+  pointToLayer:(f,ll)=>L.circleMarker(ll,{radius:5,color:"#84cc16",fillColor:"#84cc16",fillOpacity:.9}),
+  onEachFeature:popup
+ }),
+ roads:L.geoJSON(null,{
+  style:{color:"#f59e0b",weight:2.5},
+  onEachFeature:popup
+ }),
+ buildings:L.geoJSON(null,{
+  style:{color:"#e879f9",weight:1,fillColor:"#e879f9",fillOpacity:.55},
+  pointToLayer:(f,ll)=>L.circleMarker(ll,{radius:3,color:"#e879f9",fillColor:"#e879f9",fillOpacity:.9}),
+  onEachFeature:popup
+ }),
+ water:L.geoJSON(null,{
+  style:{color:"#38bdf8",weight:2,fillColor:"#38bdf8",fillOpacity:.5},
+  pointToLayer:(f,ll)=>L.circleMarker(ll,{radius:4,color:"#38bdf8",fillColor:"#38bdf8",fillOpacity:.9}),
+  onEachFeature:popup
+ }),
+ forest:L.geoJSON(null,{
+  style:{color:"#16a34a",weight:1.5,fillColor:"#16a34a",fillOpacity:.5},
+  pointToLayer:(f,ll)=>L.circleMarker(ll,{radius:4,color:"#16a34a",fillColor:"#16a34a",fillOpacity:.9}),
+  onEachFeature:popup
+ })
+};
+
+const checkIds={
+ agriculture:"agri",
+ roads:"roads",
+ buildings:"buildings",
+ water:"water",
+ forest:"forest"
+};
+
+/* =========================================================
+   GITHUB GEOGRAPHY
+========================================================= */
+
+async function loadGeography(){
+ status("LOADING GEOGRAPHY");
+ log("Loading administrative GeoJSON from GitHub...");
+
+ const response=await fetch(GEOJSON_URL,{cache:"no-store"});
+
+ if(!response.ok){
+  throw new Error("GitHub returned HTTP "+response.status);
+ }
+
+ const json=await response.json();
+
+ if(!json.features || !Array.isArray(json.features)){
+  throw new Error("Invalid GeoJSON FeatureCollection.");
+ }
+
+ state.all=json;
+ log("Loaded "+json.features.length+" geographic features.");
+
+ const f=json.features;
+
+ fill("region",unique(f,fields.region),"All regions");
+ fill("lga",unique(f,fields.lga),"All LGAs");
+ fill("district",unique(f,fields.district),"All districts");
+ fill("ward",unique(f,fields.ward),"All wards");
+
+ applySelection();
+ status("GEOGRAPHY READY");
 }
 
-function setKpi(id,value){
-  $(id).textContent=value;
+function selectedValues(){
+ return {
+  region:$("region").value,
+  lga:$("lga").value,
+  district:$("district").value,
+  ward:$("ward").value
+ };
 }
 
-function safeName(v){
-  return v===null||v===undefined?"":String(v);
+function filterAdmin(){
+ const s=selectedValues();
+
+ return state.all.features.filter(f=>
+  (!s.region || String(prop(f,fields.region))===s.region) &&
+  (!s.lga || String(prop(f,fields.lga))===s.lga) &&
+  (!s.district || String(prop(f,fields.district))===s.district) &&
+  (!s.ward || String(prop(f,fields.ward))===s.ward)
+ );
 }
 
-function featureCollection(features){
-  return {type:"FeatureCollection",features:features||[]};
+function rebuildSelectors(level){
+ const s=selectedValues();
+ let f=state.all.features;
+
+ if(s.region) f=f.filter(x=>String(prop(x,fields.region))===s.region);
+
+ if(s.lga && level!=="region"){
+  f=f.filter(x=>String(prop(x,fields.lga))===s.lga);
+ }
+
+ if(s.district && (level==="district" || level==="ward")){
+  f=f.filter(x=>String(prop(x,fields.district))===s.district);
+ }
+
+ if(level==="region"){
+  fill("lga",unique(f,fields.lga),"All LGAs");
+  fill("district",unique(f,fields.district),"All districts");
+  fill("ward",unique(f,fields.ward),"All wards");
+ }
+ if(level==="lga"){
+  fill("district",unique(f,fields.district),"All districts");
+  fill("ward",unique(f,fields.ward),"All wards");
+ }
+ if(level==="district"){
+  fill("ward",unique(f,fields.ward),"All wards");
+ }
 }
 
-function download(content,name,type){
-  const blob=new Blob([content],{type});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;a.download=name;
-  document.body.appendChild(a);a.click();a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
+/* =========================================================
+   SPATIAL SELECTION
+========================================================= */
+
+function bboxIntersects(a,b){
+ return !(a[2]<b[0] || a[0]>b[2] || a[3]<b[1] || a[1]>b[3]);
 }
 
-function detectProperty(feature,candidates){
-  const props=feature?.properties||{};
-  const keys=Object.keys(props);
-  for(const candidate of candidates){
-    const found=keys.find(k=>k.toLowerCase()===candidate.toLowerCase());
-    if(found)return found;
+function applySelection(){
+ if(!state.all) return;
+
+ state.selected=filterAdmin();
+ state.index=[];
+
+ if(typeof turf!=="undefined"){
+  state.selected.forEach(f=>{
+   try{
+    state.index.push({feature:f,bbox:turf.bbox(f)});
+   }catch(e){}
+  });
+ }else{
+  log("Turf is unavailable. Spatial filtering will use a basic fallback.");
+ }
+
+ boundaryLayer.clearLayers();
+
+ if($("showEA").checked){
+  boundaryLayer.addData({
+   type:"FeatureCollection",
+   features:state.selected
+  });
+  if(!map.hasLayer(boundaryLayer)) boundaryLayer.addTo(map);
+ }else{
+  map.removeLayer(boundaryLayer);
+ }
+
+ if(state.selected.length){
+  const bounds=L.geoJSON({
+   type:"FeatureCollection",
+   features:state.selected
+  }).getBounds();
+
+  if(bounds.isValid()) map.fitBounds(bounds,{padding:[18,18],maxZoom:14});
+ }
+
+ const s=selectedValues();
+ const name=s.ward||s.district||s.lga||s.region||"National extent";
+
+ $("mapTitle").textContent=name+" • Selected administrative extent";
+ $("areaTag").textContent=name;
+
+ $("pRegion").textContent=s.region||"All";
+ $("pLga").textContent=s.lga||"All";
+ $("pDistrict").textContent=s.district||"All";
+ $("pWard").textContent=s.ward||"All";
+ $("pEA").textContent=state.selected.length.toLocaleString();
+ $("nEA").textContent=state.selected.length.toLocaleString();
+
+ log("Selected EA features: "+state.selected.length);
+ updateAnalytics();
+}
+
+/* =========================================================
+   OVERPASS CONVERSION
+========================================================= */
+
+function convertOverpass(json){
+ const features=[];
+
+ for(const e of json.elements||[]){
+  const p={...(e.tags||{}),osm_id:e.id,osm_type:e.type};
+
+  if(e.type==="node" && Number.isFinite(e.lon) && Number.isFinite(e.lat)){
+   features.push({
+    type:"Feature",
+    properties:p,
+    geometry:{type:"Point",coordinates:[e.lon,e.lat]}
+   });
   }
-  return null;
+
+  if(e.type==="way" && Array.isArray(e.geometry)){
+   const coords=e.geometry
+    .filter(x=>Number.isFinite(x.lon)&&Number.isFinite(x.lat))
+    .map(x=>[x.lon,x.lat]);
+
+   if(coords.length<2) continue;
+
+   const first=coords[0];
+   const last=coords[coords.length-1];
+   const closed=
+    coords.length>=4 &&
+    first[0]===last[0] &&
+    first[1]===last[1];
+
+   features.push({
+    type:"Feature",
+    properties:p,
+    geometry:closed
+     ?{type:"Polygon",coordinates:[coords]}
+     :{type:"LineString",coordinates:coords}
+   });
+  }
+ }
+
+ return {type:"FeatureCollection",features};
 }
 
-function getAdminName(feature,level){
-  const candidates={
-    0:["shapeName","name","NAME_0","admin"],
-    1:["shapeName","name","NAME_1","admin1Name","region"],
-    2:["shapeName","name","NAME_2","admin2Name","district"],
-    3:["shapeName","name","NAME_3","admin3Name","ward"]
+/* =========================================================
+   SPATIAL FILTER
+========================================================= */
+
+function withinSelection(feature){
+ if(typeof turf==="undefined") return true;
+
+ try{
+  const b=turf.bbox(feature);
+
+  for(const item of state.index){
+   if(!bboxIntersects(b,item.bbox)) continue;
+
+   try{
+    if(turf.booleanIntersects(feature,item.feature)) return true;
+   }catch(e){}
+  }
+ }catch(e){}
+
+ return false;
+}
+
+function filterFeatures(fc){
+ return {
+  type:"FeatureCollection",
+  features:fc.features.filter(withinSelection)
+ };
+}
+
+/* =========================================================
+   OVERPASS QUERY
+========================================================= */
+
+function buildQuery(category,b){
+ const box=`${b.south},${b.west},${b.north},${b.east}`;
+
+ const q={
+  agriculture:`
+   way["landuse"~"farmland|farmyard|orchard|vineyard|plant_nursery"](${box});
+   way["landcover"~"farmland|orchard"](${box});
+   way["crop"](${box});
+  `,
+  roads:`
+   way["highway"](${box});
+  `,
+  buildings:`
+   way["building"](${box});
+  `,
+  water:`
+   way["waterway"](${box});
+   way["natural"~"water|wetland"](${box});
+   way["landuse"="reservoir"](${box});
+  `,
+  forest:`
+   way["landuse"~"forest|plantation"](${box});
+   way["natural"~"wood|scrub"](${box});
+  `
+ };
+
+ return `[out:json][timeout:${$("timeout").value}];(${q[category]});out body geom;`;
+}
+
+function getBounds(){
+ if(!state.selected.length) throw new Error("No selected geographic features.");
+
+ let west=Infinity,south=Infinity,east=-Infinity,north=-Infinity;
+
+ if(typeof turf==="undefined"){
+  const bounds=L.geoJSON({type:"FeatureCollection",features:state.selected}).getBounds();
+  if(!bounds.isValid()) throw new Error("Invalid selected boundary extent.");
+  return {
+   west:bounds.getWest(),south:bounds.getSouth(),
+   east:bounds.getEast(),north:bounds.getNorth()
   };
-  const key=detectProperty(feature,candidates[level]||["shapeName","name"]);
-  return key?safeName(feature.properties[key]):"";
+ }
+
+ state.index.forEach(x=>{
+  west=Math.min(west,x.bbox[0]);
+  south=Math.min(south,x.bbox[1]);
+  east=Math.max(east,x.bbox[2]);
+  north=Math.max(north,x.bbox[3]);
+ });
+
+ return {west,south,east,north};
 }
 
-function fitFeatureCollection(fc){
-  if(!fc||!fc.features||!fc.features.length)return;
-  const layer=L.geoJSON(fc);
-  const bounds=layer.getBounds();
-  if(bounds.isValid())map.fitBounds(bounds,{padding:[20,20],maxZoom:12});
-}
+async function overpassRequest(query){
+ let lastError;
 
+ for(const url of OVERPASS){
+  try{
+   log("Contacting "+url);
 
-// ==========================================================
-// 5. LOAD GEOBOUNDARIES AUTOMATICALLY
-// ==========================================================
+   const controller=new AbortController();
+   const timer=setTimeout(
+    ()=>controller.abort(),
+    Number($("timeout").value)*1000+25000
+   );
 
-async function fetchBoundary(level){
+   try{
+    const response=await fetch(url,{
+     method:"POST",
+     headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},
+     body:"data="+encodeURIComponent(query),
+     signal:controller.signal
+    });
 
-  const url=GB_API+"ADM"+level+"/";
+    if(!response.ok) throw new Error("HTTP "+response.status);
 
-  const response=await fetch(url);
+    const json=await response.json();
 
-  if(!response.ok){
-    throw new Error("geoBoundaries ADM"+level+" HTTP "+response.status);
-  }
-
-  const metadata=await response.json();
-
-  if(!metadata.gjDownloadURL){
-    throw new Error("No GeoJSON download URL for ADM"+level);
-  }
-
-  const geoResponse=await fetch(metadata.gjDownloadURL);
-
-  if(!geoResponse.ok){
-    throw new Error("Boundary GeoJSON download failed for ADM"+level);
-  }
-
-  const geojson=await geoResponse.json();
-
-  return geojson;
-}
-
-async function loadBoundaries(){
-
-  status("Loading open administrative boundaries from geoBoundaries...");
-
-  $("region").innerHTML='<option value="">Loading regions...</option>';
-
-  const levels=[0,1,2,3];
-
-  const results=await Promise.allSettled(
-    levels.map(level=>fetchBoundary(level))
-  );
-
-  results.forEach((result,index)=>{
-    if(result.status==="fulfilled"){
-      state.admin["adm"+index]=result.value;
-    }else{
-      console.warn("ADM"+index+" unavailable:",result.reason);
+    if(!Array.isArray(json.elements)){
+     throw new Error(json.remark||"Invalid Overpass response.");
     }
-  });
 
-  const country=state.admin.adm0;
-
-  if(!state.admin.adm1 && !country){
-    throw new Error("Could not retrieve Gambia administrative boundaries. Check internet access or try again.");
+    return json;
+   }finally{
+    clearTimeout(timer);
+   }
+  }catch(e){
+   lastError=e;
+   log("Endpoint failed: "+e.message);
   }
+ }
 
-  if(state.adminLayer)map.removeLayer(state.adminLayer);
-
-  const allBoundaryFeatures=[
-    ...(state.admin.adm1?.features||[]),
-    ...(state.admin.adm2?.features||[])
-  ];
-
-  state.adminLayer=L.geoJSON(featureCollection(allBoundaryFeatures),{
-    style:feature=>{
-      const level=feature.properties?.shapeType||"";
-      return {
-        color:"#f2f5f8",
-        weight:1,
-        fillColor:"#38a77c",
-        fillOpacity:0.025
-      };
-    },
-    onEachFeature:(feature,layer)=>{
-      const p=feature.properties||{};
-      layer.bindPopup(
-        "<b>"+(p.shapeName||p.name||"Administrative unit")+"</b><br>"+
-        "Source: geoBoundaries gbOpen"
-      );
-    }
-  });
-
-  if($("adminLayer").checked)state.adminLayer.addTo(map);
-
-  populateSelectors();
-
-  if(country)fitFeatureCollection(country);
-  else if(state.admin.adm1)fitFeatureCollection(state.admin.adm1);
-
-  status(
-    "Administrative boundaries loaded. ADM1: "+
-    (state.admin.adm1?.features?.length||0)+
-    "; ADM2: "+(state.admin.adm2?.features?.length||0)+
-    "; ADM3: "+(state.admin.adm3?.features?.length||0)+".",
-    "ok"
-  );
-
-  updateSelection();
+ throw lastError||new Error("All Overpass endpoints failed.");
 }
 
-function populateSelectors(){
+/* =========================================================
+   DRAW AND UPDATE LAYERS
+========================================================= */
 
-  const r=$("region");
-  r.innerHTML='<option value="">All regions</option>';
+function render(category){
+ const layer=mapLayers[category];
+ layer.clearLayers();
+ layer.addData(state.data[category]);
 
-  const features=state.admin.adm1?.features||[];
+ if($(checkIds[category]).checked){
+  if(!map.hasLayer(layer)) layer.addTo(map);
+ }else{
+  map.removeLayer(layer);
+ }
 
-  features.forEach((f,i)=>{
-    const name=getAdminName(f,1)||"Region "+(i+1);
-    r.add(new Option(name,String(i)));
-  });
-
-  populateDistricts();
+ layer.eachLayer(x=>{
+  if(x.setStyle){
+   x.setStyle({
+    opacity:state.opacity,
+    fillOpacity:state.opacity*.55
+   });
+  }
+ });
+ updateAnalytics();
 }
 
-function populateDistricts(){
-
-  const regionIndex=$("region").value;
-  const district=$("district");
-  const ward=$("ward");
-
-  district.innerHTML='<option value="">All districts</option>';
-  ward.innerHTML='<option value="">All wards</option>';
-
-  let features=state.admin.adm2?.features||[];
-
-  if(regionIndex!==""){
-    const selectedRegion=state.admin.adm1.features[Number(regionIndex)];
-    if(selectedRegion){
-      try{
-        features=features.filter(f=>
-          turf.booleanIntersects(f,selectedRegion)
-        );
-      }catch(e){}
-    }
-  }
-
-  features.forEach((f,i)=>{
-    const name=getAdminName(f,2)||"District "+(i+1);
-    district.add(new Option(name,String(i)));
-  });
+function countFeatures(){
+ return Object.values(state.data).reduce(
+  (n,fc)=>n+fc.features.length,0
+ );
 }
 
-function populateWards(){
+/* =========================================================
+   ANALYSIS
+========================================================= */
 
-  const ward=$("ward");
-  ward.innerHTML='<option value="">All wards</option>';
+async function analyseCategory(category){
+ const bounds=getBounds();
+ const query=buildQuery(category,bounds);
 
-  let features=state.admin.adm3?.features||[];
+ log("Querying "+category+"...");
 
-  const regionIndex=$("region").value;
-  const districtIndex=$("district").value;
+ const raw=await overpassRequest(query);
+ const converted=convertOverpass(raw);
 
-  if(regionIndex!=="" && state.admin.adm1?.features[Number(regionIndex)]){
-    const region=state.admin.adm1.features[Number(regionIndex)];
-    try{
-      features=features.filter(f=>turf.booleanIntersects(f,region));
-    }catch(e){}
-  }
+ log(category+": "+converted.features.length+" features returned by OSM.");
 
-  if(districtIndex!=="" && state.admin.adm2?.features[Number(districtIndex)]){
-    const district=state.admin.adm2.features[Number(districtIndex)];
-    try{
-      features=features.filter(f=>turf.booleanIntersects(f,district));
-    }catch(e){}
-  }
+ const filtered=filterFeatures(converted);
 
-  features.forEach((f,i)=>{
-    const name=getAdminName(f,3)||"Ward "+(i+1);
-    ward.add(new Option(name,String(i)));
-  });
+ state.data[category]=filtered;
+ render(category);
+
+ log(category+": "+filtered.features.length+" features retained in selected area.");
+
+ return filtered.features.length;
 }
+
+async function runAnalysis(){
+ if(state.busy) return;
+
+ if(!state.selected.length){
+  alert("Select an administrative area first.");
+  return;
+ }
+
+ const selected=[];
+
+ Object.keys(checkIds).forEach(category=>{
+  if($(checkIds[category]).checked) selected.push(category);
+ });
+
+ if(!selected.length){
+  alert("Select at least one thematic layer.");
+  return;
+ }
+
+ state.busy=true;
+ $("run").disabled=true;
+ $("run").textContent="PROCESSING...";
+ status("QUERYING");
+
+ let success=0;
+ let failures=0;
+
+ try{
+  for(const category of selected){
+   try{
+    await analyseCategory(category);
+    success++;
+   }catch(e){
+    failures++;
+    log(category.toUpperCase()+" FAILED: "+e.message);
+   }
+  }
+
+  status(success?(failures?"PARTIAL RESULTS":"ANALYSIS COMPLETE"):"QUERY FAILED");
+  log("Analysis complete. Successful: "+success+" | Failed: "+failures);
+
+ }finally{
+  state.busy=false;
+  $("run").disabled=false;
+  $("run").textContent="RUN ANALYSIS";
+ }
+}
+
+/* =========================================================
+   CHARTS AND KPIs
+========================================================= */
+
+function chartAvailable(){
+ return typeof Chart!=="undefined";
+}
+
+function drawCharts(){
+ if(!chartAvailable()){
+  log("Chart.js unavailable. Map and analysis remain available.");
+  return;
+ }
+
+ const vals=[
+  state.data.agriculture.features.length,
+  state.data.roads.features.length,
+  state.data.buildings.features.length,
+  state.data.water.features.length,
+  state.data.forest.features.length
+ ];
+
+ if(state.charts.features) state.charts.features.destroy();
+
+ state.charts.features=new Chart($("featureChart"),{
+  type:"bar",
+  data:{
+   labels:["Agriculture","Roads","Buildings","Water","Forest"],
+   datasets:[{
+    data:vals,
+    backgroundColor:["#84cc16","#f59e0b","#e879f9","#38bdf8","#16a34a"]
+   }]
+  },
+  options:{
+   responsive:true,
+   maintainAspectRatio:false,
+   plugins:{legend:{display:false}},
+   scales:{
+    x:{ticks:{color:"#b8c8d8",font:{size:9}},grid:{display:false}},
+    y:{beginAtZero:true,ticks:{color:"#b8c8d8",precision:0},grid:{color:"#293e55"}}
+   }
+  }
+ });
+
+ const counts={};
+ state.data.agriculture.features.forEach(f=>{
+  const p=f.properties||{};
+  const type=p.landuse||p.landcover||p.crop||"Other";
+  counts[type]=(counts[type]||0)+1;
+ });
+
+ if(state.charts.agri) state.charts.agri.destroy();
+
+ state.charts.agri=new Chart($("agriChart"),{
+  type:"doughnut",
+  data:{
+   labels:Object.keys(counts).length?Object.keys(counts):["No records"],
+   datasets:[{
+    data:Object.keys(counts).length?Object.values(counts):[1],
+    backgroundColor:["#84cc16","#22c55e","#eab308","#16a34a","#38bdf8","#f59e0b"]
+   }]
+  },
+  options:{
+   responsive:true,
+   maintainAspectRatio:false,
+   plugins:{legend:{position:"bottom",labels:{color:"#d5e2ef",font:{size:9}}}}
+  }
+ });
+}
+
+function updateAnalytics(){
+ const n={
+  agriculture:state.data.agriculture.features.length,
+  roads:state.data.roads.features.length,
+  buildings:state.data.buildings.features.length,
+  water:state.data.water.features.length,
+  forest:state.data.forest.features.length
+ };
+
+ $("nEA").textContent=state.selected.length.toLocaleString();
+ $("nAgri").textContent=n.agriculture.toLocaleString();
+ $("nRoad").textContent=n.roads.toLocaleString();
+ $("nBuilding").textContent=n.buildings.toLocaleString();
+ $("nWater").textContent=n.water.toLocaleString();
+ $("nAll").textContent=countFeatures().toLocaleString();
+
+ $("featureTag").textContent=countFeatures().toLocaleString()+" features";
+
+ drawCharts();
+}
+
+/* =========================================================
+   CLEAR THEMES
+========================================================= */
+
+function clearThemes(){
+ Object.keys(state.data).forEach(category=>{
+  state.data[category]=empty();
+  mapLayers[category].clearLayers();
+  map.removeLayer(mapLayers[category]);
+ });
+ updateAnalytics();
+}
+
+/* =========================================================
+   EVENT HANDLERS
+========================================================= */
+
+$("basemap").addEventListener("change",e=>{
+ fallbackStarted=false;
+ setBasemap(e.target.value);
+});
 
 $("region").addEventListener("change",()=>{
-  populateDistricts();
-  updateSelection();
+ rebuildSelectors("region");
+ clearThemes();
+ applySelection();
+});
+
+$("lga").addEventListener("change",()=>{
+ rebuildSelectors("lga");
+ clearThemes();
+ applySelection();
 });
 
 $("district").addEventListener("change",()=>{
-  populateWards();
-  updateSelection();
+ rebuildSelectors("district");
+ clearThemes();
+ applySelection();
 });
 
-$("ward").addEventListener("change",updateSelection);
-
-$("loadBoundaries").addEventListener("click",async()=>{
-  try{await loadBoundaries();}
-  catch(e){status(e.message,"error");}
+$("ward").addEventListener("change",()=>{
+ clearThemes();
+ applySelection();
 });
 
-$("adminLayer").addEventListener("change",()=>{
-  if(!state.adminLayer)return;
-  if($("adminLayer").checked)state.adminLayer.addTo(map);
-  else map.removeLayer(state.adminLayer);
+$("apply").addEventListener("click",()=>{
+ clearThemes();
+ applySelection();
 });
 
+$("showEA").addEventListener("change",e=>{
+ if(e.target.checked){
+  boundaryLayer.clearLayers();
+  boundaryLayer.addData({type:"FeatureCollection",features:state.selected});
+  boundaryLayer.addTo(map);
+ }else{
+  map.removeLayer(boundaryLayer);
+ }
+});
 
-// ==========================================================
-// 6. SELECTED ADMINISTRATIVE GEOGRAPHY
-// ==========================================================
-
-function updateSelection(){
-
-  const regionIndex=$("region").value;
-  const districtIndex=$("district").value;
-  const wardIndex=$("ward").value;
-
-  let selected=[];
-
-  if(wardIndex!=="" && state.admin.adm3){
-    const candidates=state.admin.adm3.features;
-    const filtered=candidates.filter(f=>{
-      const name=getAdminName(f,3);
-      return name===$("ward").selectedOptions[0]?.textContent;
-    });
-    selected=filtered;
-  }
-  else if(districtIndex!=="" && state.admin.adm2){
-    const name=$("district").selectedOptions[0]?.textContent;
-    selected=state.admin.adm2.features.filter(f=>getAdminName(f,2)===name);
-  }
-  else if(regionIndex!=="" && state.admin.adm1){
-    selected=[state.admin.adm1.features[Number(regionIndex)]].filter(Boolean);
-  }
-  else if(state.admin.adm0){
-    selected=state.admin.adm0.features;
-  }
-  else{
-    selected=state.admin.adm1?.features||[];
-  }
-
-  state.selected=selected;
-
-  if(state.adminLayer){
-    map.removeLayer(state.adminLayer);
-  }
-
-  state.adminLayer=L.geoJSON(featureCollection([
-    ...(state.admin.adm1?.features||[]),
-    ...(state.admin.adm2?.features||[]),
-    ...(state.admin.adm3?.features||[])
-  ]),{
-    style:f=>({
-      color:"#dfeaf4",
-      weight:0.7,
-      fillColor:"#36a77b",
-      fillOpacity:0.015
-    })
-  });
-
-  if($("adminLayer").checked)state.adminLayer.addTo(map);
-
-  const highlight=L.geoJSON(featureCollection(selected),{
-    style:{
-      color:"#f4b75e",
-      weight:2.5,
-      fillColor:"#eab457",
-      fillOpacity:0.07
-    }
-  });
-
-  highlight.addTo(map);
-
-  const bounds=highlight.getBounds();
-
-  if(bounds.isValid())map.fitBounds(bounds,{padding:[20,20],maxZoom:13});
-
-  setKpi("kBoundary",num(selected.length));
-
-  const regionName=$("region").selectedOptions[0]?.textContent||"The Gambia";
-  const districtName=$("district").selectedOptions[0]?.textContent||"";
-  const wardName=$("ward").selectedOptions[0]?.textContent||"";
-
-  $("mapSubtitle").textContent=[
-    regionName,
-    districtName,
-    wardName
-  ].filter(Boolean).join(" / ");
-
-  updateOSMAnalytics();
-}
-
-
-// ==========================================================
-// 7. OVERPASS QUERY — OPENSTREETMAP DATA
-// ==========================================================
-
-function getSelectedBounds(){
-
-  let fc;
-
-  if(state.selected.length){
-    fc=featureCollection(state.selected);
-  }else if(state.admin.adm0){
-    fc=state.admin.adm0;
+Object.entries(checkIds).forEach(([category,id])=>{
+ $(id).addEventListener("change",e=>{
+  if(e.target.checked){
+   render(category);
   }else{
-    return null;
+   map.removeLayer(mapLayers[category]);
   }
-
-  const bounds=turf.bbox(fc);
-
-  return {
-    south:bounds[1],
-    west:bounds[0],
-    north:bounds[3],
-    east:bounds[2]
-  };
-}
-
-function buildOverpassQuery(b){
-
-  const box=[
-    b.south,b.west,b.north,b.east
-  ].join(",");
-
-  return `
-[out:json][timeout:90];
-(
-  way["landuse"~"farmland|orchard|vineyard|allotments|plant_nursery|forest|grass|meadow"](${box});
-  relation["landuse"~"farmland|orchard|vineyard|allotments|plant_nursery|forest|grass|meadow"](${box});
-  way["natural"~"wood|water|wetland|grassland"](${box});
-  relation["natural"~"wood|water|wetland|grassland"](${box});
-  way["building"](${box});
-  way["highway"](${box});
-  way["waterway"](${box});
-  way["leisure"="park"](${box});
-);
-out geom;
-`;
-}
-
-async function fetchOverpass(query){
-
-  let lastError=null;
-
-  for(const endpoint of OVERPASS){
-
-    try{
-
-      const response=await fetch(endpoint,{
-        method:"POST",
-        headers:{
-          "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"
-        },
-        body:"data="+encodeURIComponent(query)
-      });
-
-      if(!response.ok){
-        throw new Error("Overpass HTTP "+response.status);
-      }
-
-      const data=await response.json();
-      return data;
-
-    }catch(e){
-      lastError=e;
-      console.warn("Overpass endpoint failed:",endpoint,e);
-    }
-  }
-
-  throw lastError||new Error("All Overpass endpoints failed.");
-}
-
-function featureWithinSelected(feature){
-
-  if(!state.selected.length)return true;
-
-  try{
-    return state.selected.some(boundary=>
-      turf.booleanIntersects(feature,boundary)
-    );
-  }catch(e){
-    return true;
-  }
-}
-
-async function extractOSM(){
-
-  if(state.extracting)return;
-
-  const bounds=getSelectedBounds();
-
-  if(!bounds){
-    status("Administrative boundary is not available yet.","error");
-    return;
-  }
-
-  state.extracting=true;
-  $("extractOSM").disabled=true;
-  $("extractOSM").textContent="EXTRACTING OPEN DATA...";
-
-  status("Requesting OSM roads, buildings, farmland, forest and water features...");
-
-  try{
-
-    const query=buildOverpassQuery(bounds);
-    const raw=await fetchOverpass(query);
-
-    if(!window.osmtogeojson){
-      throw new Error("OSM GeoJSON converter did not load.");
-    }
-
-    const geojson=osmtogeojson(raw);
-
-    const selectedFeatures=(geojson.features||[])
-      .filter(featureWithinSelected);
-
-    state.osm=featureCollection(selectedFeatures);
-    state.osmLoaded=true;
-
-    drawOSM();
-    updateOSMAnalytics();
-
-    status(
-      "OSM extraction completed: "+
-      selectedFeatures.length+
-      " mapped features retrieved. OSM is a volunteered dataset; coverage may be incomplete.",
-      "ok"
-    );
-
-  }catch(e){
-
-    console.error(e);
-
-    status(
-      "OSM extraction failed: "+e.message+
-      ". Try a smaller district or ward, then wait before retrying.",
-      "error"
-    );
-
-  }finally{
-
-    state.extracting=false;
-    $("extractOSM").disabled=false;
-    $("extractOSM").textContent="EXTRACT OPEN OSM DATA FOR SELECTED AREA";
-  }
-}
-
-$("extractOSM").addEventListener("click",extractOSM);
-
-$("extractCountry").addEventListener("click",async()=>{
-  if(state.admin.adm0){
-    state.selected=state.admin.adm0.features;
-  }
-  await extractOSM();
+ });
 });
 
-
-// ==========================================================
-// 8. CLASSIFY OSM FEATURES FOR DISPLAY
-// ==========================================================
-
-function osmCategory(feature){
-
-  const p=feature.properties||{};
-  const tags=p.tags||p;
-
-  if(tags.landuse==="farmland")return "farmland";
-  if(tags.landuse==="orchard"||tags.landuse==="vineyard"||
-     tags.landuse==="allotments"||tags.landuse==="plant_nursery")
-    return "orchard";
-
-  if(tags.landuse==="forest"||tags.natural==="wood"||
-     tags.natural==="tree")
-    return "forest";
-
-  if(tags.landuse==="grass"||tags.landuse==="meadow"||
-     tags.natural==="grassland")
-    return "grass";
-
-  if(tags.building)return "building";
-  if(tags.highway)return "road";
-
-  if(tags.waterway||tags.natural==="water"||
-     tags.landuse==="reservoir"||tags.natural==="wetland")
-    return "water";
-
-  if(tags.leisure==="park")return "grass";
-
-  return "other";
-}
-
-function drawOSM(){
-
-  if(state.osmLayer)map.removeLayer(state.osmLayer);
-  if(!state.osm)return;
-
-  state.osmLayer=L.geoJSON(state.osm,{
-    style:feature=>{
-      const category=osmCategory(feature);
-      return {
-        color:COLORS[category]||COLORS.other,
-        weight:category==="road"?2:1.2,
-        opacity:.9,
-        fillColor:COLORS[category]||COLORS.other,
-        fillOpacity:category==="road"?.2:.48
-      };
-    },
-    pointToLayer:(feature,latlng)=>{
-      const category=osmCategory(feature);
-      return L.circleMarker(latlng,{
-        radius:4,
-        color:COLORS[category]||COLORS.other,
-        fillColor:COLORS[category]||COLORS.other,
-        fillOpacity:.8,
-        weight:1
-      });
-    },
-    onEachFeature:(feature,layer)=>{
-      const p=feature.properties||{};
-      const tags=p.tags||p;
-      const category=osmCategory(feature);
-      const name=tags.name||"Unnamed OSM feature";
-
-      layer.bindPopup(
-        "<b>"+name+"</b><br>"+
-        "Category: "+category+"<br>"+
-        "Source: OpenStreetMap"
-      );
-    }
+$("opacity").addEventListener("input",e=>{
+ state.opacity=Number(e.target.value)/100;
+ Object.values(mapLayers).forEach(layer=>{
+  layer.eachLayer(x=>{
+   if(x.setStyle){
+    x.setStyle({opacity:state.opacity,fillOpacity:state.opacity*.55});
+   }
   });
-
-  updateOSMVisibility();
-}
-
-function updateOSMVisibility(){
-
-  if(!state.osmLayer)return;
-
-  const enabled=new Set();
-
-  if($("osmLand").checked){
-    enabled.add("farmland");
-    enabled.add("orchard");
-    enabled.add("grass");
-  }
-
-  if($("osmRoads").checked)enabled.add("road");
-  if($("osmBuildings").checked)enabled.add("building");
-  if($("osmWater").checked)enabled.add("water");
-  if($("osmForest").checked)enabled.add("forest");
-
-  const filtered=(state.osm?.features||[]).filter(f=>
-    enabled.has(osmCategory(f))
-  );
-
-  if(map.hasLayer(state.osmLayer))map.removeLayer(state.osmLayer);
-
-  state.osmLayer=L.geoJSON(featureCollection(filtered),{
-    style:f=>{
-      const c=COLORS[osmCategory(f)]||COLORS.other;
-      return {color:c,weight:1.5,fillColor:c,fillOpacity:.45};
-    },
-    pointToLayer:(f,ll)=>{
-      const c=COLORS[osmCategory(f)]||COLORS.other;
-      return L.circleMarker(ll,{radius:4,color:c,fillColor:c,fillOpacity:.8});
-    }
-  }).addTo(map);
-}
-
-[
-  "osmLand","osmRoads","osmBuildings","osmWater","osmForest"
-].forEach(id=>{
-  $(id).addEventListener("change",updateOSMVisibility);
+ });
 });
 
-$("mapLayerQuick").addEventListener("change",function(){
-
-  const v=this.value;
-
-  $("osmLand").checked=v==="all"||v==="land";
-  $("osmRoads").checked=v==="all"||v==="roads";
-  $("osmWater").checked=v==="all"||v==="water";
-
-  if(v==="land"){
-    $("osmBuildings").checked=false;
-    $("osmForest").checked=true;
-  }
-
-  updateOSMVisibility();
-});
-
-
-// ==========================================================
-// 9. OPEN DATA ANALYTICS
-// ==========================================================
-
-function updateOSMAnalytics(){
-
-  const features=state.osm?.features||[];
-
-  let counts={
-    farmland:0,orchard:0,forest:0,grass:0,
-    road:0,building:0,water:0,other:0
-  };
-
-  let roadLength=0;
-
-  features.forEach(feature=>{
-
-    const category=osmCategory(feature);
-    counts[category]=(counts[category]||0)+1;
-
-    if(category==="road"){
-      try{
-        roadLength+=turf.length(feature,{units:"kilometers"});
-      }catch(e){}
-    }
-  });
-
-  const agri=counts.farmland+counts.orchard;
-
-  setKpi("kOSM",num(features.length));
-  setKpi("kAgri",num(agri));
-  setKpi("kRoad",num(roadLength));
-  setKpi("kBuilding",num(counts.building));
-  setKpi("kWater",num(counts.water));
-
-  const rows=[
-    ["Farmland",counts.farmland],
-    ["Orchards / horticulture",counts.orchard],
-    ["Forest / woodland",counts.forest],
-    ["Grassland / meadow",counts.grass],
-    ["Roads / tracks",counts.road],
-    ["Buildings",counts.building],
-    ["Water / waterways",counts.water],
-    ["Other",counts.other]
-  ];
-
-  $("featureTable").innerHTML=rows.map(row=>
-    "<tr><td>"+row[0]+"</td><td>"+num(row[1])+"</td></tr>"
-  ).join("");
-
-  updateChart(rows);
-
-  $("mapStatus").textContent=
-    features.length+" open OSM features loaded";
-}
-
-function updateChart(rows){
-
-  if(state.chart)state.chart.destroy();
-
-  state.chart=new Chart($("landChart"),{
-    type:"bar",
-    data:{
-      labels:rows.map(r=>r[0]),
-      datasets:[{
-        label:"OSM features",
-        data:rows.map(r=>r[1]),
-        backgroundColor:[
-          COLORS.farmland,COLORS.orchard,COLORS.forest,
-          COLORS.grass,COLORS.road,COLORS.building,
-          COLORS.water,COLORS.other
-        ],
-        borderRadius:4
-      }]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      indexAxis:"y",
-      plugins:{legend:{display:false}},
-      scales:{
-        x:{
-          beginAtZero:true,
-          ticks:{color:"#a9bbce",font:{size:9}},
-          grid:{color:"#26384c"}
-        },
-        y:{
-          ticks:{color:"#dce7f3",font:{size:9}},
-          grid:{display:false}
-        }
-      }
-    }
-  });
-}
-
-
-// ==========================================================
-// 10. EXPORT OPEN DATA
-// ==========================================================
-
-$("exportOSM").addEventListener("click",()=>{
-  if(!state.osm){
-    status("Extract OSM data before exporting.","warn");
-    return;
-  }
-
-  download(
-    JSON.stringify(state.osm,null,2),
-    "GBoS_GEOAI_Gambia_OSM_Extract.geojson",
-    "application/geo+json"
-  );
-});
-
-$("exportBoundaries").addEventListener("click",()=>{
-  if(!state.selected.length){
-    status("No selected administrative boundary.","warn");
-    return;
-  }
-
-  download(
-    JSON.stringify(featureCollection(state.selected),null,2),
-    "GBoS_GEOAI_Selected_Boundaries.geojson",
-    "application/geo+json"
-  );
-});
-
-$("exportCSV").addEventListener("click",()=>{
-
-  const features=state.osm?.features||[];
-
-  const rows=[{
-    category:"Farmland",
-    feature_count:features.filter(f=>osmCategory(f)==="farmland").length
-  },{
-    category:"Orchards and horticulture",
-    feature_count:features.filter(f=>osmCategory(f)==="orchard").length
-  },{
-    category:"Forest",
-    feature_count:features.filter(f=>osmCategory(f)==="forest").length
-  },{
-    category:"Grassland",
-    feature_count:features.filter(f=>osmCategory(f)==="grass").length
-  },{
-    category:"Roads",
-    feature_count:features.filter(f=>osmCategory(f)==="road").length
-  },{
-    category:"Buildings",
-    feature_count:features.filter(f=>osmCategory(f)==="building").length
-  },{
-    category:"Water",
-    feature_count:features.filter(f=>osmCategory(f)==="water").length
-  }];
-
-  const csv=[
-    "category,feature_count",
-    ...rows.map(r=>'"'+r.category+'",'+r.feature_count)
-  ].join("\n");
-
-  download(csv,"GBoS_GEOAI_OpenData_Statistics.csv","text/csv");
-});
-
-$("exportReport").addEventListener("click",()=>{
-
-  const report={
-    title:"GBoS GEOAI Agricultural Open Data Summary",
-    generated:new Date().toISOString(),
-    selected_boundary_features:state.selected.length,
-    osm_feature_count:state.osm?.features?.length||0,
-    data_sources:{
-      boundaries:"geoBoundaries gbOpen",
-      land_cover:"ESA WorldCover 2021 WMS",
-      open_features:"OpenStreetMap / Overpass API"
-    },
-    limitations:[
-      "OpenStreetMap coverage is incomplete and volunteered.",
-      "WorldCover WMS is a visual reference and is not a pixel-analysis download.",
-      "OSM feature counts are not agricultural area estimates.",
-      "Crop species classification requires separate training and validation data."
-    ]
-  };
-
-  download(
-    JSON.stringify(report,null,2),
-    "GBoS_GEOAI_Analysis_Summary.json",
-    "application/json"
-  );
-});
-
-
-// ==========================================================
-// 11. RESET
-// ==========================================================
+$("run").addEventListener("click",runAnalysis);
+$("clear").addEventListener("click",clearThemes);
 
 $("reset").addEventListener("click",()=>{
+ if(!state.all) return;
 
-  $("region").value="";
-  $("district").innerHTML='<option value="">All districts</option>';
-  $("ward").innerHTML='<option value="">All wards</option>';
+ $("region").value="";
+ fill("lga",unique(state.all.features,fields.lga),"All LGAs");
+ fill("district",unique(state.all.features,fields.district),"All districts");
+ fill("ward",unique(state.all.features,fields.ward),"All wards");
 
-  if(state.osmLayer)map.removeLayer(state.osmLayer);
-  if(state.adminLayer)map.removeLayer(state.adminLayer);
+ clearThemes();
+ applySelection();
 
-  state.osm=null;
-  state.osmLoaded=false;
-  state.selected=[];
-
-  setKpi("kBoundary","0");
-  setKpi("kOSM","0");
-  setKpi("kAgri","0");
-  setKpi("kRoad","0");
-  setKpi("kBuilding","0");
-  setKpi("kWater","0");
-
-  $("featureTable").innerHTML=
-    '<tr><td colspan="2">No OSM data extracted.</td></tr>';
-
-  if(state.chart)state.chart.destroy();
-
-  map.setView(COUNTRY_CENTER,8);
-  status("Dashboard reset. Boundary data remains available.","ok");
+ const bounds=L.geoJSON(state.all).getBounds();
+ if(bounds.isValid()) map.fitBounds(bounds,{padding:[20,20]});
 });
 
+/* =========================================================
+   EXPORTS
+========================================================= */
 
-// ==========================================================
-// 12. INITIALISE
-// ==========================================================
+function download(filename,content,mime){
+ const blob=new Blob([content],{type:mime});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement("a");
+ a.href=url;
+ a.download=filename;
+ document.body.appendChild(a);
+ a.click();
+ a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+$("geoExport").addEventListener("click",()=>{
+ const output=empty();
+
+ Object.entries(state.data).forEach(([category,fc])=>{
+  fc.features.forEach(f=>{
+   output.features.push({
+    ...f,
+    properties:{...(f.properties||{}),analysis_category:category}
+   });
+  });
+ });
+
+ download(
+  "GBoS_GEOAI_Selected_Area.geojson",
+  JSON.stringify(output,null,2),
+  "application/geo+json"
+ );
+});
+
+$("csvExport").addEventListener("click",()=>{
+ const rows=[[
+  "category","osm_id","osm_type","name",
+  "landuse","landcover","crop","highway",
+  "building","waterway","natural"
+ ]];
+
+ Object.entries(state.data).forEach(([category,fc])=>{
+  fc.features.forEach(f=>{
+   const p=f.properties||{};
+   rows.push([
+    category,p.osm_id||"",p.osm_type||"",p.name||"",
+    p.landuse||"",p.landcover||"",p.crop||"",
+    p.highway||"",p.building||"",p.waterway||"",p.natural||""
+   ]);
+  });
+ });
+
+ const csv=rows.map(row=>
+  row.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")
+ ).join("\n");
+
+ download(
+  "GBoS_GEOAI_Selected_Area.csv",
+  csv,
+  "text/csv;charset=utf-8"
+ );
+});
+
+/* =========================================================
+   STARTUP
+========================================================= */
 
 async function start(){
+ try{
+  log("Map initialised. Loading geographic data...");
 
-  try{
+  await loadGeography();
 
-    status("Connecting to open administrative and land-cover services...");
+  status("READY");
+  log("Dashboard is ready.");
 
-    if($("worldcover").checked){
-      state.worldLayer.addTo(map);
-    }
-
-    await loadBoundaries();
-
-    $("connection").textContent="● OPEN DATA CONNECTED";
-
-    status(
-      "Ready. Boundaries and WorldCover reference layer are available. Extract OSM features for your selected area.",
-      "ok"
-    );
-
-    invalidateMap();
-
-  }catch(e){
-
-    console.error(e);
-
-    $("connection").textContent="● PARTIAL CONNECTION";
-
-    status(
-      "Some data services could not be reached: "+e.message+
-      ". Check internet access and use Reload Open Boundaries.",
-      "error"
-    );
-
-    map.setView(COUNTRY_CENTER,8);
-    invalidateMap();
-  }
+ }catch(e){
+  status("STARTUP ERROR");
+  log("STARTUP ERROR: "+e.message);
+  alert("Dashboard startup error: "+e.message);
+ }
 }
 
 start();
@@ -1384,3 +1346,4 @@ start();
 </script>
 </body>
 </html>
+
